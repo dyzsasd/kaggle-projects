@@ -99,8 +99,8 @@ if __name__ == '__main__':
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint]
 
-    generator = MongoImageIterator('/data/cdiscount', 1, input_shape)
+    generator = MongoImageIterator('/data/cdiscount', 100, input_shape)
     model = get_model(input_shape + (3, ), len(generator.cat2vec.classes_), pool_size=5, strides=3)
-#    model.fit_generator(generator, steps_per_epoch=10, epochs=10000, validation_data=[generator.validation_x, generator.validation_y], callbacks=callbacks_list)
+    model.fit_generator(generator, steps_per_epoch=100, epochs=10000, validation_data=[generator.validation_x, generator.validation_y], callbacks=callbacks_list)
 # model.fit(sdi.self.train_images_data, sdi.self.mask_images_data, batch_size=100, epochs=100)
 
