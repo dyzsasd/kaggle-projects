@@ -36,7 +36,7 @@ class MongoImageIterator(Iterator):
 
         self.train_set, self.validation_set = self.separate_dataset(id2cat)
         print("loading %s validation samples" % len(self.validation_set))
-#        self.validation_x, self.validation_y = self._get_image_tuples(self.validation_set)
+        self.validation_x, self.validation_y = self._get_image_tuples(self.validation_set)
         super(MongoImageIterator, self).__init__(len(self.train_set), batch_size, True, None)
 
     def separate_dataset(self, image_metas):
@@ -47,7 +47,7 @@ class MongoImageIterator(Iterator):
         validation_set = []
         for cat, ids in category_ids.items():
             random.shuffle(ids)
-            sep = len(ids) // 10
+            sep = len(ids) // 100
             train_set.extend([(_id, image_metas[_id]) for _id in ids[sep:]])
             validation_set.extend([(_id, image_metas[_id]) for _id in ids[:sep]])
         
