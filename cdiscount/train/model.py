@@ -1,13 +1,9 @@
-import numpy as np
 from pylab import *
 from keras.models import Model
-from keras.regularizers import l2
 from keras.layers import *
-from keras.engine import Layer
 from keras.applications.vgg16 import *
 from keras.models import *
 import keras.backend as K
-import tensorflow as tf
 
 
 def mvn(tensor):
@@ -74,7 +70,7 @@ def get_model(
 
     bottom_pad = pool_size[0] - int(input_shape[0] % strides[0])
     right_pad = pool_size[1] - int(input_shape[1] % strides[1])
-  
+
     if num_classes == 2:
         loss = dice_coef_loss
         activation = 'sigmoid'
@@ -167,10 +163,8 @@ def get_model(
     drop2 = Dropout(rate=0.5, name='drop2')(mvn15)
 
     flat = Flatten()(drop2)
-    
-    hidden = Dense(24 * 24 * 512, activation='relu')(flat)
-    drop3 = Dropout(rate=0.5, name='drop3')(hidden)
-    out = Dense(num_classes, activation='softmax')(drop3)
+
+    out = Dense(num_classes, activation=activation)(flat)
 
     model = Model(inputs=data, outputs=out)
 

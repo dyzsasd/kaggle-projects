@@ -1,13 +1,9 @@
-import numpy as np
 from pylab import *
 from keras.models import Model
-from keras.regularizers import l2
 from keras.layers import *
-from keras.engine import Layer
 from keras.applications.vgg16 import *
 from keras.models import *
 import keras.backend as K
-import tensorflow as tf
 
 
 def mvn(tensor):
