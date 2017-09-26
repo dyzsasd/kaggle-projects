@@ -1,18 +1,11 @@
-import matplotlib
-
-matplotlib.use('agg')
-
 from collections import defaultdict
-import fnmatch
 import os
 import pickle
 import random
+import sys
 
-import bson
 from keras.callbacks import ModelCheckpoint
-from keras.metrics import binary_accuracy
-from keras.optimizers import SGD
-from keras.preprocessing.image import img_to_array, load_img, Iterator
+from keras.preprocessing.image import img_to_array, Iterator
 import numpy as np
 import pymongo as pym
 
@@ -32,12 +25,17 @@ class MongoImageIterator(Iterator):
         self.input_shape = input_shape
 
         id2cat = pickle.load(open(os.path.join(self.path, 'id2cat.pk'), 'rb'))
-        self.cat2vec = pickle.load(open(os.path.join(self.path, 'cat2vec.pk'), 'rb'))
+        self.cat2vec = pickle.load(
+            open(os.path.join(self.path, 'cat2vec.pk'), 'rb'))
 
         self.train_set, self.validation_set = self.separate_dataset(id2cat)
+        super(MongoImageIterator, self).__init__(
+            len(self.train_set), batch_size, True, None)
+
+    def load_validation_dataset(self):
         print("loading %s validation samples" % len(self.validation_set))
-        self.validation_x, self.validation_y = self._get_image_tuples(self.validation_set)
-        super(MongoImageIterator, self).__init__(len(self.train_set), batch_size, True, None)
+        self.validation_x, self.validation_y = self._get_image_tuples(
+            self.validation_set)
 
     def separate_dataset(self, image_metas):
         category_ids = defaultdict(list)
@@ -49,8 +47,9 @@ class MongoImageIterator(Iterator):
             random.shuffle(ids)
             sep = len(ids) // 100
             train_set.extend([(_id, image_metas[_id]) for _id in ids[sep:]])
-            validation_set.extend([(_id, image_metas[_id]) for _id in ids[:sep]])
-        
+            validation_set.extend([
+                (_id, image_metas[_id]) for _id in ids[:sep]])
+
         return train_set, validation_set
 
     def get_batch_samples(self, ids):
@@ -71,16 +70,16 @@ class MongoImageIterator(Iterator):
         return batch_x, batch_y
 
     def _get_image_tuples(self, id_cat_tuples):
-        chunk_size = 100        
-        images = []
-        cats = []
+        chunk_size = 100
 
         chunks = []
         for index in range(0, len(id_cat_tuples), chunk_size):
-            chunks.append(([tup[0] for tup in id_cat_tuples[index: index + chunk_size]], ))
+            chunks.append((
+                [tup[0] for tup in id_cat_tuples[index: index + chunk_size]],
+            ))
 
         resps, _ = execute(self.get_batch_samples, chunks)
-        
+
         batch_x = np.concatenate([tup[0] for tup in resps])
         batch_y = np.concatenate([tup[1] for tup in resps])
         return batch_x, batch_y
@@ -95,12 +94,42 @@ class MongoImageIterator(Iterator):
 
 
 if __name__ == '__main__':
-    filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
-    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    if len(sys.argv) > 1 and sys.argv[1] == 'val':
+        validation = True
+    else:
+        validation = False
+
+    filepath = "weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+    checkpoint = ModelCheckpoint(
+        filepath,
+        monitor='val_acc',
+        verbose=1,
+        save_best_only=True,
+        mode='max'
+    )
     callbacks_list = [checkpoint]
 
     generator = MongoImageIterator('/data/cdiscount', 1, input_shape)
-    model = get_model(input_shape + (3, ), len(generator.cat2vec.classes_), pool_size=5, strides=3)
-    model.fit_generator(generator, steps_per_epoch=100, epochs=10000, validation_data=[generator.validation_x, generator.validation_y], callbacks=callbacks_list)
-# model.fit(sdi.self.train_images_data, sdi.self.mask_images_data, batch_size=100, epochs=100)
+    model = get_model(
+        input_shape + (3, ),
+        len(generator.cat2vec.classes_),
+        pool_size=5,
+        strides=3
+    )
 
+    if validation:
+        generator.load_validation_dataset()
+        model.fit_generator(
+            generator,
+            steps_per_epoch=100,
+            epochs=10000,
+            validation_data=[generator.validation_x, generator.validation_y],
+            callbacks=callbacks_list
+        )
+    else:
+        model.fit_generator(
+            generator,
+            steps_per_epoch=100,
+            epochs=10000,
+            callbacks=callbacks_list
+        )
