@@ -171,7 +171,7 @@ def get_model(
 
     model = Model(inputs=data, outputs=out)
 
-    sgd = optimizers.SGD(lr=0.05, momentum=0.9, nesterov=True)
+    sgd = optimizers.SGD(lr=0.001, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss=loss,
                   metrics=['accuracy'])
 
