@@ -121,7 +121,7 @@ if __name__ == '__main__':
         generator.load_validation_dataset()
         model.fit_generator(
             generator,
-            steps_per_epoch=100,
+            steps_per_epoch=1,
             epochs=10000,
             validation_data=[generator.validation_x, generator.validation_y],
             callbacks=callbacks_list
