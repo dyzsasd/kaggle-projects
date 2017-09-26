@@ -164,7 +164,10 @@ def get_model(
 
     flat = Flatten()(drop2)
 
-    out = Dense(num_classes, activation=activation)(flat)
+    hidden = Dense(num_classes, activation='relu')(flat)
+    drop3 = Dropout(rate=0.5, name='drop3')(hidden)
+    out = Dense(
+        num_classes, activation=activation)(drop3)
 
     model = Model(inputs=data, outputs=out)
 
