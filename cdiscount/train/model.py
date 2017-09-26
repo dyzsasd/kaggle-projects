@@ -75,7 +75,7 @@ def get_model(
         loss = dice_coef_loss
         activation = 'sigmoid'
     else:
-        loss = 'categorical_crossentropy'
+        loss = 'sparse_categorical_crossentropy'
         activation = 'softmax'
 
     kwargs = dict(
