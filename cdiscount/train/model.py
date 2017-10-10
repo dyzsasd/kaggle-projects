@@ -68,21 +68,11 @@ def get_model(
     if isinstance(strides, int):
         strides = (strides, strides)
 
-    bottom_pad = pool_size[0] - int(input_shape[0] % strides[0])
-    right_pad = pool_size[1] - int(input_shape[1] % strides[1])
-
-    if num_classes == 2:
-        loss = dice_coef_loss
-        activation = 'sigmoid'
-    else:
-        loss = 'categorical_crossentropy'
-        activation = 'softmax'
-
     kwargs = dict(
         kernel_size=3,
         strides=1,
         activation='relu',
-        padding='same',
+        padding='valid',
         use_bias=True,
         kernel_initializer='glorot_uniform',
         bias_initializer='zeros',
@@ -93,86 +83,64 @@ def get_model(
         trainable=True,
     )
 
-    data = Input(shape=input_shape, dtype='float', name='data')
-    mvn0 = Lambda(mvn, name='mvn0')(data)
-    pad1 = ZeroPadding2D(padding=((0, bottom_pad), (0, right_pad)), name='pad1')(mvn0)
+    layers = [
+        Lambda(mvn, name='mvn0'),
+        Conv2D(filters=64, name='conv1', **kwargs),
+        Lambda(mvn, name='mvn1'),
+        Conv2D(filters=64, name='conv2', **kwargs),
+        Lambda(mvn, name='mvn2'),
+        Conv2D(filters=64, name='conv3', **kwargs),
+        Lambda(mvn, name='mvn3'),
+        MaxPooling2D(pool_size=pool_size, strides=strides, padding='valid', name='pool1'),
+        Dropout(rate=0.5, name='drop1'),
+        Conv2D(filters=128, name='conv4', **kwargs),
+        Lambda(mvn, name='mvn4'),
+        Conv2D(filters=128, name='conv5', **kwargs),
+        Lambda(mvn, name='mvn5'),
+        Conv2D(filters=128, name='conv6', **kwargs),
+        Lambda(mvn, name='mvn6'),
+        Conv2D(filters=128, name='conv7', **kwargs),
+        Lambda(mvn, name='mvn7'),
+        MaxPooling2D(pool_size=pool_size, strides=strides, padding='valid', name='pool2'),
+        Dropout(rate=0.5, name='drop2'),
+        Conv2D(filters=256, name='conv8', **kwargs),
+        Lambda(mvn, name='mvn8'),
+        Conv2D(filters=256, name='conv9', **kwargs),
+        Lambda(mvn, name='mvn9'),
+        Conv2D(filters=256, name='conv10', **kwargs),
+        Lambda(mvn, name='mvn10'),
+        Conv2D(filters=256, name='conv11', **kwargs),
+        Lambda(mvn, name='mvn11'),
+        MaxPooling2D(pool_size=pool_size, strides=strides, padding='valid', name='pool3'),
+        Dropout(rate=0.5, name='drop3'),
+        Conv2D(filters=512, name='conv12', **kwargs),
+        Lambda(mvn, name='mvn12'),
+        Conv2D(filters=512, name='conv13', **kwargs),
+        Lambda(mvn, name='mvn13'),
+        Conv2D(filters=512, name='conv14', **kwargs),
+        Lambda(mvn, name='mvn14'),
+        Conv2D(filters=512, name='conv15', **kwargs),
+        Lambda(mvn, name='mvn15'),
+        Flatten(),
+        Dense(num_classes, activation='relu'),
+    ]
 
-    conv1 = Conv2D(filters=64, name='conv1', **kwargs)(pad1)
-    mvn1 = Lambda(mvn, name='mvn1')(conv1)
+    input_1 = Input(shape=input_shape, dtype='float', name='data')
+    input_2 = Input(shape=input_shape, dtype='float', name='data')
 
-    conv2 = Conv2D(filters=64, name='conv2', **kwargs)(mvn1)
-    mvn2 = Lambda(mvn, name='mvn2')(conv2)
+    output_1 = input_1
+    for layer in layers:
+        output_1 = layer(output_1)
 
-    conv3 = Conv2D(filters=64, name='conv3', **kwargs)(mvn2)
-    mvn3 = Lambda(mvn, name='mvn3')(conv3)
-    pool1 = MaxPooling2D(
-        pool_size=pool_size, strides=strides,
-        padding='valid', name='pool1')(mvn3)
+    output_2 = input_2
+    for layer in layers:
+        output_2 = layer(output_2)
 
-    bottom_pad = pool_size[0] - int(pool1.shape[1] % strides[0])
-    right_pad = pool_size[1] - int(pool1.shape[2] % strides[1])
+    merged_vector = concatenate([output_1, output_2], axis=-1)
+    output = Dense(1, activation="sigmoid")(merged_vector)
+    model = Model([input_1, input_2], output)
 
-    pad2 = ZeroPadding2D(padding=((0, bottom_pad), (0, right_pad)), name='pad2')(pool1)
-    conv4 = Conv2D(filters=128, name='conv4', **kwargs)(pad2)
-    mvn4 = Lambda(mvn, name='mvn4')(conv4)
-
-    conv5 = Conv2D(filters=128, name='conv5', **kwargs)(mvn4)
-    mvn5 = Lambda(mvn, name='mvn5')(conv5)
-
-    conv6 = Conv2D(filters=128, name='conv6', **kwargs)(mvn5)
-    mvn6 = Lambda(mvn, name='mvn6')(conv6)
-
-    conv7 = Conv2D(filters=128, name='conv7', **kwargs)(mvn6)
-    mvn7 = Lambda(mvn, name='mvn7')(conv7)
-    pool2 = MaxPooling2D(
-        pool_size=pool_size, strides=strides,
-        padding='valid', name='pool2')(mvn7)
-
-    bottom_pad = pool_size[0] - int(pool2.shape[1] % strides[0])
-    right_pad = pool_size[1] - int(pool2.shape[2] % strides[1])
-
-    pad3 = ZeroPadding2D(padding=((0, bottom_pad), (0, right_pad)), name='pad3')(pool2)
-
-    conv8 = Conv2D(filters=256, name='conv8', **kwargs)(pad3)
-    mvn8 = Lambda(mvn, name='mvn8')(conv8)
-
-    conv9 = Conv2D(filters=256, name='conv9', **kwargs)(mvn8)
-    mvn9 = Lambda(mvn, name='mvn9')(conv9)
-
-    conv10 = Conv2D(filters=256, name='conv10', **kwargs)(mvn9)
-    mvn10 = Lambda(mvn, name='mvn10')(conv10)
-
-    conv11 = Conv2D(filters=256, name='conv11', **kwargs)(mvn10)
-    mvn11 = Lambda(mvn, name='mvn11')(conv11)
-    pool3 = MaxPooling2D(
-        pool_size=pool_size, strides=strides,
-        padding='valid', name='pool3')(mvn11)
-    drop1 = Dropout(rate=0.5, name='drop1')(pool3)
-
-    conv12 = Conv2D(filters=512, name='conv12', **kwargs)(drop1)
-    mvn12 = Lambda(mvn, name='mvn12')(conv12)
-
-    conv13 = Conv2D(filters=512, name='conv13', **kwargs)(mvn12)
-    mvn13 = Lambda(mvn, name='mvn13')(conv13)
-
-    conv14 = Conv2D(filters=512, name='conv14', **kwargs)(mvn13)
-    mvn14 = Lambda(mvn, name='mvn14')(conv14)
-
-    conv15 = Conv2D(filters=512, name='conv15', **kwargs)(mvn14)
-    mvn15 = Lambda(mvn, name='mvn15')(conv15)
-    drop2 = Dropout(rate=0.5, name='drop2')(mvn15)
-
-    flat = Flatten()(drop2)
-
-    hidden = Dense(num_classes, activation='relu')(flat)
-    drop3 = Dropout(rate=0.5, name='drop3')(hidden)
-    out = Dense(
-        num_classes, activation=activation)(drop3)
-
-    model = Model(inputs=data, outputs=out)
-
-    sgd = optimizers.SGD(lr=0.001, momentum=0.9, nesterov=True)
-    model.compile(optimizer=sgd, loss=loss,
+    model.compile(optimizer=adam, loss='binary_crossentropy',
                   metrics=['accuracy'])
 
     return model

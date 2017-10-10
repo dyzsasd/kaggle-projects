@@ -34,40 +34,74 @@ class MongoImageIterator(Iterator):
 
     def load_validation_dataset(self):
         print("loading %s validation samples" % len(self.validation_set))
-        self.validation_x, self.validation_y = self._get_image_tuples(
-            self.validation_set)
+        self.validation_x, self.validation_y = self.get_batch_samples(
+            self.validation_set, pos=10000, neg=20000)
 
     def separate_dataset(self, image_metas):
         category_ids = defaultdict(list)
         for image_id, image_cat in image_metas.items():
             category_ids[image_cat].append(image_id)
-        train_set = []
-        validation_set = []
+        train_set = {}
+        validation_set = {}
         for cat, ids in category_ids.items():
             random.shuffle(ids)
             sep = len(ids) // 100
-            train_set.extend([(_id, image_metas[_id]) for _id in ids[sep:]])
-            validation_set.extend([
-                (_id, image_metas[_id]) for _id in ids[:sep]])
+            train_set[cat] = ids[sep:]
+            validation_set[cat] = ids[:sep]
 
         return train_set, validation_set
 
-    def get_batch_samples(self, ids):
-        images = []
-        cats = []
-        for obj in self.col.find({'_id': {'$in': ids}}):
-            obj = parse_bson_obj(obj)
-            cats.extend([obj['category_id']] * len(obj['imgs']))
-            images.extend(obj['imgs'])
-        batch_x = np.zeros((len(images), ) + self.input_shape + (3, ))
-        batch_y = self.cat2vec.transform(cats)
+    def get_batch_samples(self, cat_ids, pos=50, neg=50):
+        batch = []
+        pos_per_cat = max(pos // len(cat_ids), 1)
+
+        cat_images = {}
+        for cat, ids in cat_ids.items():
+            images = []
+            for obj in self.col.find({'_id': {'$in': ids}}):
+                obj = parse_bson_obj(obj)
+                images.extend(obj['imgs'])
+            if len(images) > 1:
+                cat_images[cat] = images
+
+            if len(images) < 2 or pos < 0:
+                continue
+
+            tuples = zip(
+                random.sample(images, min(len(images, pos_per_cat))),
+                random.sample(images, min(len(images, pos_per_cat)))
+            )
+            batch.extends(zip(tuples, [1] * len(tuples)))
+            pos = pos - len(tuples)
+
+        if len(cat_images) > 2:
+            max_neg = (len(cat_images) ** 2)
+            for i in range(min(neg, max_neg)):
+                selected_cats = random.sample(cat_images.keys(), 2)
+                batch.append(
+                    (
+                        (
+                            random.sample(cat_images[selected_cats[0]], 1)[0],
+                            random.sample(cat_images[selected_cats[1]], 1)[0],
+                        ),
+                        0
+                    )
+                )
+
+        batch_x_1 = np.zeros((len(batch), ) + self.input_shape + (3, ))
+        batch_x_2 = np.zeros((len(batch), ) + self.input_shape + (3, ))
+
         count = 0
-        for image in images:
-            x = img_to_array(image)
-            batch_x[count] = x
+        for tup, _ in batch:
+            image_1, image_2 = tup
+            x_1 = img_to_array(image_1)
+            x_2 = img_to_array(image_2)
+            batch_x_1[count] = x_1
+            batch_x_2[count] = x_2
             count += 1
-        print(batch_x.shape)
-        return batch_x, batch_y
+        batch_y = self.cat2vec.transform([tup[-1] for tup in batch])
+
+        return ((batch_x_1, batch_x_2), batch_y)
 
     def _get_image_tuples(self, id_cat_tuples):
         chunk_size = 100
@@ -88,9 +122,10 @@ class MongoImageIterator(Iterator):
         with self.lock:
             index_array, current_index, current_batch_size = next(
                 self.index_generator)
-        return self._get_image_tuples([
-            self.train_set[chosen_index] for chosen_index in index_array
-        ])
+        items = self.train_set()
+        return self.get_batch_samples(dict([
+            items[chosen_index] for chosen_index in index_array
+        ]))
 
 
 if __name__ == '__main__':
