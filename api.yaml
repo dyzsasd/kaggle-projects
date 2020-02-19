@@ -1,0 +1,1869 @@
+openapi: 3.0.0
+info:
+  title: Winglet API
+  description: This api is used to search, book and manage flight and services via NDC
+    channel
+  version: 0.1.0
+  termsOfService: https://www.winglet.io/api/terms/
+  contact:
+    email: contact-api@winglet.io
+  license:
+    name: "[value to be defined]"
+    url: https://www.winglet.io/api/licenses/to_be_defined
+tags:
+  - name: offer
+    description: offer management section
+    externalDocs:
+      description: More Detail
+      url: https://docs.winglet.io/api/offer
+  - name: order
+    description: order management section
+    externalDocs:
+      description: More Detail
+      url: https://docs.winglet.io/api/booking
+
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+
+servers:
+  - url: https://api.winglet.io/api/v0
+
+paths:
+  /search:
+    post:
+      tags:
+        - offer
+      summary: Search flight
+      description: According to user's request, Winglet will search flight offers by
+        airline's NDC api and return a list of offers as result.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+        description: search request
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "207":
+          description: search partial success, some airlines search may failed due to quota
+            limit or api exception.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "400":
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "415":
+          description: Unsupported Media Type
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+  
+  /offer_detail:
+    post:
+      tags:
+        - offer
+      summary: Get detail information about an offer
+      description: Retrieve the flight detail, such as final fare, taxes and payment
+        information
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferDetailRequest"
+        description: Flight detail request
+        required: true
+      responses:
+        "200":
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferDetailResponse"
+        "400":
+          description: invalid request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "415":
+          description: Unsupported Media Type
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+
+  /seats:
+    post:
+      tags:
+        - offer
+      summary: Get available seats
+      description: Get available seat from airlines
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeatRequest"
+        description: Flight seats request
+        required: true
+      responses:
+        "200":
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatResponse"
+        "400":
+          description: invalid request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "415":
+          description: Unsupported Media Type
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+
+  /services:
+    post:
+      tags:
+        - offer
+      summary: Get available services
+      description: Get available services from airlines
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServicesRequest"
+        description: Flight services request
+        required: true
+      responses:
+        "200":
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesResponse"
+        "400":
+          description: invalid request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "415":
+          description: Unsupported Media Type
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+
+  /order/{id}:
+    get:
+      tags:
+        - order
+      summary: Get an order information
+      description: get order's information by order ID
+      parameters:
+        - in: path
+          name: id   # Note the name is the same as in the path
+          required: true
+          schema:
+            type: string
+            minimum: 1
+          description: The order ID
+      responses:
+        "200":
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Invalid Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: order not found
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle Error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+
+  /order:
+    post:
+      tags:
+        - order
+      summary: Create an order
+      description: Create an order based on selected offers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+        description: Create order request
+        required: true
+      responses:
+        "200":
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Invalid Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+        "415":
+          description: Unsupported Media Type
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Search handle error
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - ApiAuth: []
+
+components:
+  securitySchemes:
+    ApiAuth:
+      type: apiKey
+      in: header
+      name: api-key
+  
+  
+  schemas:
+    # Shared Object
+    PassengerType:
+      description: Object contains passenger type and id, which is used in offer management requests.
+      type: object
+      additionalProperties: false
+      title: PassengerType
+      required:
+        - type
+      properties:
+        id:
+          description: passenger id
+          type: string
+          x-go-name: ID
+          example: pt1
+        type:
+          description: passenger type
+          type: string
+          enum:
+            - adult
+            - child
+            - infant-with-seat
+            - infant-without-seat
+            - youth
+          x-go-name: Type
+          example: adult
+    
+    TravelAgency:
+      description: Travel agency information for search and booking
+      type: object
+      additionalProperties: false
+      title: TravelAgency
+      x-go-name: TravelAgency
+      required:
+        - agency_id
+        - iata_number
+      properties:
+        agency_id:
+          description: travel agency id
+          type: string
+          example: "1"
+          x-go-name: AgencyID
+        iata_number:
+          description: IATA number
+          type: string
+          example: "00000162"
+          x-go-name: IATANumber
+
+    Source:
+      description: Source API information.
+      type: object
+      x-go-name: Source
+      properties:
+        response_id:
+          type: string
+          description: NDC response id
+          x-go-name: ResponseID
+        airline:
+          type: string
+          description: Airline IATA code
+          x-go-name: Airline 
+
+    Tax:
+      type: object
+      x-go-name: Tax
+      title: Tax
+      description: Tax amount and description
+      properties:
+        amount:
+          x-go-name: amount
+          type: number
+          description: tax amount
+        description:
+          x-go-name: Description
+          type: string
+          description: tax description
+    
+    Individual:
+      description: Object contains individual information
+      type: object
+      additionalProperties: false
+      title: Individual
+      properties:
+        birthdate:
+          description: birthdate
+          type: string
+          format: date
+          x-go-name: ID
+          example: "1997-07-21"
+        gender:
+          description: gender
+          type: string
+          x-go-name: Gender
+          example: "Male"
+        name_title:
+          description: title of person
+          type: string
+          x-go-name: NameTitle
+          example: "Mr"
+        given_name:
+          description: given name
+          type: string
+          x-go-name: GivenName
+          example: "John"
+        surname:
+          description: surname
+          type: string
+          x-go-name: Surname
+          example: "Dupont"
+      
+    Passenger:
+      description: Object contains passenger information
+      type: object
+      additionalProperties: false
+      title: Passenger
+      properties:
+        id:
+          description: passenger id
+          type: string
+          x-go-name: ID
+          example: pt1
+        type:
+          description: passenger type
+          type: string
+          enum:
+            - adult
+            - child
+            - infant-with-seat
+            - infant-without-seat
+            - youth
+          x-go-name: Type
+          example: adult
+        individual:
+          $ref: "#/components/schemas/Individual"
+        contact_id:
+          description: contact id
+          type: string
+          x-go-name: ContactID
+          example: "contact-1"
+
+    Contact:
+      description: contact information
+      type: object
+      additionalProperties: false
+      title: Contact
+      properties:
+        provided_contact:
+          $ref: "#/components/schemas/ProvidedContact"
+        individual:
+          $ref: "#/components/schemas/Individual"
+    
+    ProvidedContact:
+      description: contact detail of phone or email
+      type: object
+      additionalProperties: false
+      title: ProvidedContact
+      properties:
+        email:
+          description: email address
+          type: string
+          format: email
+          x-go-name: Email
+          example: "xxxx@test.com"
+        phone:
+          description: phone number with country code
+          type: string
+          x-go-name: Phone
+          example: "0033633873676"
+
+    PaymentMethod:
+      description: Payment instructions of the offer, such as acceptable currency,
+        surcharge.
+      type: object
+      additionalProperties: false
+      title: PaymentMethod
+      required:
+        - type
+        - name
+        - code
+        - surcharge
+        - currency
+      properties:
+        type:
+          type: string
+          description: Payment type, such as Card, Cache
+          x-go-name: Type
+        name:
+          type: string
+          description: Payment method name, such as Visa, CB, Master
+          x-go-name: Name
+        code:
+          type: string
+          description: Payment method code, such as VI, MI
+          x-go-name: Code
+        surcharge:
+          type: number
+          description: Payment surcharge
+          x-go-name: Surcharge
+        currency:
+          type: string
+          description: Payment amount currency
+          x-go-name: Currency
+
+
+    Payment:
+      description: payment information
+      type: object
+      additionalProperties: false
+      title: Payment
+      properties:
+        method:
+          $ref: "#/components/schemas/PaymentMethod"
+        card:
+          x-go-name: Card
+          type: object
+          title: Card
+          description: card information
+          properties:
+            number:
+              description: card number
+              type: string
+              x-go-name: Number
+              example: "4972xxxxxxxxxxxx"
+            series_code:
+              description: card series code
+              type: string
+              x-go-name: SeriesCode
+              example: "000"
+            holder_name:
+              description: card holder name
+              type: string
+              x-go-name: HolderName
+              example: "MR. John Dupont"
+            billing_address:
+              $ref: "#/components/schemas/BillingAddress"
+            effective_date:
+              description: card effective date
+              type: string
+              x-go-name: EffectiveDate
+              example: "0919"
+            expire_date:
+              description: card expiration date
+              type: string
+              x-go-name: ExpireDate
+              example: "0923"
+        contact_id:
+          description: contact id
+          type: string
+          x-go-name: ContactID
+          example: "contact-1"
+    
+    BillingAddress:
+      x-go-name: BillingAddress
+      type: object
+      title: BillingAddress
+      description: Billing address information
+      properties:
+        street:
+          description: street name
+          type: string
+          x-go-name: Street
+          example: "1716 5th street"
+        city_name:
+          description: city code
+          type: string
+          x-go-name: CityName
+          example: "NYC"
+        postal_code:
+          description: postal code
+          type: string
+          x-go-name: PostalCode
+          example: "323463"
+        country_code:
+          description: country code
+          type: string
+          x-go-name: CountryCode
+          example: "33"
+
+    # Baggage
+    PassengerBaggageAllowances:
+      title: PassengerBaggageAllowance
+      description: allowed baggaes for each passenger
+      type: object
+      additionalProperties: false
+      properties:
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 0
+          items:
+            type: string
+        baggage_allowances:
+          x-go-name: BaggageAllowances
+          type: array
+          description: allowed baggages in each trip
+          items:
+            type: object
+            properties:
+              trip_id:
+                type: string
+                x-go-name: TripID
+                description: trip id in the offers
+              baggage:
+                $ref: '#/components/schemas/BaggageAllowance'
+    
+    BaggageAllowance:
+      title: BaggageAllowance
+      description: Baggage allowance
+      type: object
+      additionalProperties: false
+      properties:
+        category:
+          type: string
+          description: carry_on or checked
+          enum:
+            - carry_on
+            - checked
+        pieces:
+          type: integer
+          format: int64
+          description: baggage pieces
+          x-go-name: Pieces
+        descriptions:
+          type: array
+          description: Text descriptions of baggage limit
+          x-go-name: Descriptions
+          items:
+            type: string
+        weight:
+          type: object
+          additionalProperties: false
+          description: baggage weight limit
+          x-go-name: Weight
+          properties:
+            unit:
+              type: string
+              description: unit of mesurement
+              x-go-name: Unit
+            value:
+              type: number
+              description: unit of mesurement
+              x-go-name: Value
+        dimension:
+          type: array
+          description: baggage weight limit
+          x-go-name: Dimension
+          items:
+            type: object
+            additionalProperties: false
+            description: L H P value of dimension
+            properties:
+              category:
+                type: string
+                description: L or H or P
+                enum:
+                  - L
+                  - H
+                  - P
+              unit:
+                type: string
+                description: unit of mesurement
+                x-go-name: Unit
+              value:
+                type: number
+                description: unit of mesurement
+                x-go-name: Value
+    
+    # Trip Object
+    Trip:
+      description: Trip contains flight informations
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: Trip id in this offer
+          x-go-name: ID
+        departure_date:
+          type: string
+          description: local flight departure date in format yyyy-mm-dd
+          format: date
+          x-go-name: DepartureDate
+        departure_time:
+          type: string
+          format: time
+          description: local flight departure time in format HH:MM
+          x-go-name: DepartureTime
+        arrival_date:
+          type: string
+          description: local flight arrival date in format yyyy-mm-dd
+          format: date
+          x-go-name: ArrivalDate
+        arrival_time:
+          type: string
+          format: time
+          description: local flight arrival time in format HH:MM
+          x-go-name: ArrivalTime
+        origin_airport:
+          type: string
+          description: origin airport IATA code
+          x-go-name: OriginAirport
+        destination_airport:
+          type: string
+          description: destination airport IATA code
+          x-go-name: DestinationAirport
+        duration:
+          type: string
+          description: flight total duration
+          x-go-name: Duration
+        segments:
+          description: flight composition segments
+          type: array
+          items:
+            $ref: "#/components/schemas/Segment"
+          x-go-name: Segments
+    
+    Segment:
+      description: Flight segment information
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: segment id
+          x-go-name: ID
+        aircraft:
+          description: aircraft code
+          type: string
+          x-go-name: Aircraft
+        aircraft_name:
+          description: aircraft name
+          type: string
+          x-go-name: AircraftName
+        departure_date:
+          type: string
+          description: local flight departure date in format yyyy-mm-dd
+          format: date
+          x-go-name: DepartureDate
+        departure_time:
+          type: string
+          format: time
+          description: local flight departure time in format HH:MM
+          x-go-name: DepartureTime
+        arrival_date:
+          type: string
+          description: local flight arrival date in format yyyy-mm-dd
+          format: date
+          x-go-name: ArrivalDate
+        arrival_time:
+          type: string
+          format: time
+          description: local flight arrival time in format HH:MM
+          x-go-name: ArrivalTime
+        origin_airport:
+          type: string
+          description: origin airport IATA code
+          x-go-name: OriginAirport
+        destination_airport:
+          type: string
+          description: destination airport IATA code
+          x-go-name: DestinationAirport
+        duration:
+          type: string
+          description: flight total duration
+          x-go-name: Duration
+        flight_number:
+          type: string
+          description: segment flight number
+          x-go-name: FlightNumber
+        marketing_carrier:
+          type: string
+          description: segment flight marketing carrier code
+          x-go-name: MarketingCarrier
+        marketing_carrier_name:
+          type: string
+          description: segment flight marketing carrier name
+          x-go-name: MarketingCarrierName
+        operating_carrier:
+          type: string
+          description: segment flight operating carrier code
+          x-go-name: OperatingCarrier
+        operating_carrier_name:
+          type: string
+          description: segment flight operating carrier name
+          x-go-name: OperatingCarrierName
+        available_seats:
+          type: integer
+          format: int64
+          description: available seats for this segment
+          x-go-name: AvailableSeats
+
+
+    # Offer
+    Offer:
+      description: Offer contains all information about flight
+      type: object
+      additionalProperties: false
+      required:
+        - currency
+        - expires_at
+        - offer_id
+        - price
+        - offer_detail
+      properties:
+        id: 
+          description: unique offer id
+          type: string
+          x-go-name: ID
+        hash:
+          description: hash of offer contents
+          type: string
+          x-go-name: Hash
+        source:
+          description: Source API information.
+          type: object
+          x-go-name: Source
+          properties:
+            response_id:
+              type: string
+              description: NDC response id
+              x-go-name: ResponseID
+            airline:
+              type: string
+              description: Airline IATA code
+              x-go-name: Airline 
+        price:
+          description: price in local currency
+          type: number
+          format: float
+          x-go-name: Price
+        currency:
+          description: currency used in a offer
+          type: string
+          x-go-name: Currency
+        expires_at:
+          description: Offer expiration timestamp of format "yyyy-mm-ddThh:MM:ssZ" in UTC
+          type: string
+          format: datetime
+          x-go-name: ExpiresAt
+        passengers:
+          description: PassengerType object list included in the offer
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+          x-go-name: Passengers
+        offer_items:
+          description: offer items in the offer
+          x-go-name: OfferItems
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OfferItem"
+        trips:
+          description: Trips contains in the offer
+          x-go-name: Trips
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Trip"
+        baggages:
+          $ref: "#/components/schemas/PassengerBaggageAllowances"
+
+    RequestOfferItem:
+      description: OfferItem object used in request, which contains only offer item ID and user Ids
+        object returned by FlightSearch API.
+      type: object
+      additionalProperties: false
+      title: RequestOfferItem
+      required:
+        - id
+        - passenger_ids
+      properties:
+        id:
+          x-go-name: ID
+          type: string
+          description: ID of offer item
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 0
+          items:
+            type: string
+
+    OfferItem:
+      title: OfferItem
+      description: offer item contains the price per passenger id and the cabin class baggage of each flight
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          x-go-name: ID
+          type: string
+          description: ID of offer item
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 0
+          items:
+            type: string
+        cabin_classes:
+          x-go-name: CabinClasses
+          type: array
+          description: cabin class per segment
+          items:
+            type: object
+            properties:
+              segment_id:
+                type: string
+                x-go-name: SegmentID
+                description: segment id in the offers
+              cabin_class:
+                $ref: '#/components/schemas/CabinClass'
+
+    CabinClass:
+      description: Cabin class on the flight
+      type: object
+      additionalProperties: false
+      x-go-name: CabinClass
+      properties:
+        code:
+          type: string
+          description: cabin class on this segment
+          x-go-name: Code
+        marketing_name:
+          type: string
+          description: cabin class marketing name
+          x-go-name: MarketingName
+
+
+    # Search Request
+    SearchRequest:
+      description: Search request describe the passengers and the journey detail like date,
+        origin and destination of each trip.
+      type: object
+      additionalProperties: false
+      title: SearchRequest
+      required:
+        - travel_agency
+        - journey
+        - passengers
+        - preference
+      properties:
+        travel_agency:
+          $ref: "#/components/schemas/TravelAgency"
+        trips:
+          x-go-name: Trips
+          description: OriginDestination object list
+          type: array
+          maxItems: 6
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OriginDestination"
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        preference:
+          x-go-name: FlightPreference
+          description: Flight preference is composed by cabin class and airlines
+          type: object
+          additionalProperties: false
+          title: FlightPreference
+          required:
+            - cabin_class
+          properties:
+            airlines:
+              x-go-name: Airlines
+              description: the airlines for this search
+              type: array
+              uniqueItems: true
+              items:
+                type: string
+              example:
+                - BA
+            cabin_class:
+              x-go-name: CabinClass
+              description: cabin class preference
+              type: string
+              enum:
+                - economy
+                - premium
+                - business
+                - first
+              example: economy
+      example:
+        journey:
+          - origin: LHR
+            destination: CDG
+            departure_date: 2020-08-15
+          - origin: CDG
+            destination: LHR
+            departure_date: 2020-08-20
+        preference:
+          cabin_class: economy
+          airlines:
+            - BA
+        passengers:
+          - type: adult
+            id: pt1
+        travel_agency:
+          agency_id: "1"
+          iata_number: "00000162"
+
+    OriginDestination:
+      description: origin, destination and departure date
+      type: object
+      additionalProperties: false
+      title: OriginDestination
+      required:
+        - departure_date
+        - origin
+        - destination
+      properties:
+        departure_date:
+          description: departure date of format yyyy-mm-dd
+          type: string
+          format: date
+          x-go-name: DepartureDate
+          example: 2020-08-15
+        destination:
+          description: destination IATA airport code
+          type: string
+          pattern: "[A-Z]{3}"
+          x-go-name: Destination
+          example: JFK
+        origin:
+          description: origin IATA airport code
+          type: string
+          pattern: "[A-Z]{3}"
+          x-go-name: Origin
+          example: CDG
+
+    # Search Response
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: integer
+          format: int64
+        message:
+          type: string
+
+    SearchResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        offers:
+          description: List of offers
+          type: array
+          items:
+            $ref: "#/components/schemas/Offer"
+          x-go-name: Offers
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Error"
+          x-go-name: Errors
+      example:
+        errors: []
+        offers:
+          - offer_id: OF-1d1a2585-ceec-4699-837b-68310324956d
+            expires_at: 2019-12-03T15:23:03Z
+            price: 96.31
+            currency: GBP
+            offer_detail:
+              - price: 96.31
+                tax: 56.31
+                currency: GBP
+                passengers:
+                  - id: pt1
+                    type: ADT
+                journey:
+                  - origin_airport: LHR
+                    departure_date: 2020-02-14
+                    departure_time: 20:40
+                    destination_airport: CDG
+                    arrival_date: 2020-02-14
+                    arrival_time: 22:50
+                    duration: PT1H10M
+                    segments:
+                      - id: BA0310
+                        origin_airport: LHR
+                        departure_date: 2020-02-14
+                        departure_time: 20:40
+                        destination_airport: CDG
+                        arrival_date: 2020-02-14
+                        arrival_time: 22:50
+                        duration: PT1H10M
+                        marketing_carrier: BA
+                        marketing_carrier_name: British Airways
+                        operating_carrier: BA
+                        operating_carrier_name: British Airways
+                        flight_number: "0310"
+                        aircraft: "319"
+                        aircraft_name: Airbus A319 jet
+                        conditions:
+                          cabin_class: R
+                          cabin_class_marketing_name: Club Europe
+                          fare_basis: RNM0V2R/Y
+                          available_seats: 6
+                          piece: -1
+                          name: Club Europe
+                          descriptions:
+                            - 2 x 32kg checked baggage allowance
+                            - Guaranteed window or aisle seat
+                            - "Complimentary bar service including champagne
+                              upon request "
+                            - Separate cabin offering more privacy, personal
+                              space and comfort
+                            - Access to British Airways lounges where available
+                  - origin_airport: CDG
+                    departure_date: 2020-02-28
+                    departure_time: 07:00
+                    destination_airport: LHR
+                    arrival_date: 2020-02-28
+                    arrival_time: 07:10
+                    duration: PT1H10M
+                    segments:
+                      - id: BA0311
+                        origin_airport: CDG
+                        departure_date: 2020-02-28
+                        departure_time: 07:00
+                        destination_airport: LHR
+                        arrival_date: 2020-02-28
+                        arrival_time: 07:10
+                        duration: PT1H10M
+                        marketing_carrier: BA
+                        marketing_carrier_name: British Airways
+                        operating_carrier: BA
+                        operating_carrier_name: British Airways
+                        flight_number: "0311"
+                        aircraft: "319"
+                        aircraft_name: Airbus A319 jet
+                        conditions:
+                          cabin_class: I
+                          cabin_class_marketing_name: Club Europe
+                          fare_basis: ITM0V2H/Y
+                          available_seats: 4
+                          piece: -1
+                          name: Club Europe
+                          descriptions:
+                            - 2 x 32kg checked baggage allowance
+                            - Guaranteed window or aisle seat
+                            - "Complimentary bar service including champagne
+                              upon request "
+                            - Separate cabin offering more privacy, personal
+                              space and comfort
+                            - Access to British Airways lounges where available
+
+
+    # Offer Detail Request
+    OfferDetailRequest:
+      description: Offer detail request contains agency information of request and offer
+        object returned by FlightSearch API.
+      type: object
+      additionalProperties: false
+      title: OfferDetailRequest
+      required:
+        - travel_agency
+        - offer_id
+      properties:
+        travel_agency:
+          $ref: "#/components/schemas/TravelAgency"
+        offer_id:
+          description: unique offer id
+          type: string
+          x-go-name: ID
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        source:
+          $ref: "#/components/schemas/Source"
+        hash:
+          description: hash from returned offer object
+          type: string
+          x-go-name: Hash
+        offer_items:
+          description: offer items in the offer
+          x-go-name: OfferItems
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RequestOfferItem"
+
+  
+    # Offer Detail Response
+    OfferDetailResponse:
+      description: Offer detail response contains offer's detail information and payment
+        instruction of requested offer.
+      type: object
+      additionalProperties: false
+      title: OfferDetailRequest
+      required:
+        - travel_agency
+        - offer
+      properties:
+        offer:
+          $ref: "#/components/schemas/Offer"
+        source:
+          description: Source API information.
+          type: object
+          x-go-name: Source
+          properties:
+            response_id:
+              type: string
+              description: NDC response id
+              x-go-name: ResponseID
+            airline:
+              type: string
+              description: Airline IATA code
+              x-go-name: Airline
+        price_details:
+          description: price details per offer item
+          type: array
+          x-go-name: PriceDetails
+          items:
+            $ref: "#/components/schemas/PriceDetail"
+        fare_rules:
+          description: fare rules per passenger and segment
+          type: array
+          x-go-name: FareRules
+          items:
+            $ref: "#/components/schemas/FareRule"
+        payment_methods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentMethod"
+          x-go-name: PaymentMethods
+
+    PriceDetail:
+      type: object
+      title: PriceDetail
+      x-go-name: PriceDetail
+      description: PriceDetail split price into base price and taxes
+      properties:
+        base_price:
+          x-go-name: BasePrice
+          type: number
+          description: price without taxes
+        taxes:
+          x-go-name: Taxes
+          type: array
+          description: taxes
+          items:
+            $ref: "#/components/schemas/Tax"
+    
+    FareRule:
+      type: object
+      title: FareRule
+      x-go-name: FareRule
+      description: fare rule give the fare information per passenger and segment
+      properties:
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 0
+          items:
+            type: string
+        segment_id:
+          x-go-name: SegmentID
+          type: string
+          description: segment id
+        description:
+          x-go-name: Description
+          type: string
+          description: Fare rule content
+
+
+    # Seat Request:
+    SeatRequest:
+      description: Retrieve available seat map for the offer
+      type: object
+      additionalProperties: false
+      title: SeatRequest
+      properties:
+        travel_agency:
+          $ref: "#/components/schemas/TravelAgency"
+        offer_id:
+          description: unique offer id
+          type: string
+          x-go-name: ID
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        source:
+          $ref: "#/components/schemas/Source"
+
+
+    # Seat Response
+    SeatResponse:
+      description: Available seat map for each segment
+      type: object
+      additionalProperties: false
+      title: SeatResponse
+      x-go-name: SeatResponse
+      properties:
+        source:
+          description: Source API information.
+          type: object
+          x-go-name: Source
+          properties:
+            response_id:
+              type: string
+              description: NDC response id
+              x-go-name: ResponseID
+            airline:
+              type: string
+              description: Airline IATA code
+              x-go-name: Airline 
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list included in the offer
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        segments:
+          x-go-name: Segments
+          description: Available segment for seat selection
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/Segment"
+        seat_maps:
+          x-go-name: SeatMaps
+          description: Seat maps of segment
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/SeatMap"
+        seat_offers:
+          x-go-name: SeatOffers
+          description: Seat offer of segment
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/SeatOffer"
+    
+    SeatOffer:
+      description: Seat offer
+      type: object
+      additionalProperties: false
+      title: SeatOffer
+      x-go-name: SeatOffer
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        items:
+          x-go-name: Items
+          description: Seat offer items
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/SeatOfferItem"
+    
+    Seat:
+      description: Seat
+      type: object
+      additionalProperties: false
+      title: Seat
+      x-go-name: Seat
+      properties:
+        row:
+          type: number
+          x-go-name: Row
+          description: Row number
+        column:
+          type: string
+          x-go-name: Column
+          description: Column
+
+    SeatOfferItem:
+      description: Seat offer item
+      type: object
+      additionalProperties: false
+      title: SeatOfferItem
+      x-go-name: SeatOfferItem
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 0
+          items:
+            type: string
+        segment_id:
+          type: string
+          x-go-name: CabinClass
+          description: Cabin class of this seat map
+        price:
+          x-go-name: Price
+          description: Total price of this order
+          type: number
+        currency:
+          x-go-name: Currency
+          description: Currency used in this order
+          type: string
+        available_seats:
+          x-go-name: AvailableSeats
+          type: array
+          description: Available seat in this offer item
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/Seat"
+    
+    SeatMap:
+      description: Available seat map for each segment
+      type: object
+      additionalProperties: false
+      title: SeatMap
+      x-go-name: SeatMap
+      properties:
+        segment_id:
+          type: string
+          x-go-name: CabinClass
+          description: Cabin class of this seat map
+        cabin_class:
+          type: string
+          x-go-name: CabinClass
+          description: Cabin class of this seat map
+        columns:
+          type: array
+          x-go-name: Columns
+          description: available columns code on the flight
+          minItems: 1
+          items:
+            type: string
+        first_row:
+          type: number
+          x-go-name: FirstRow
+          description: First row number
+        last_row:
+          type: number
+          x-go-name: LastRow
+          description: Last row number
+
+
+    # Services Request
+    ServicesRequest:
+      description: Retrieve available services for the offer
+      type: object
+      additionalProperties: false
+      title: ServicesRequest
+      properties:
+        travel_agency:
+          $ref: "#/components/schemas/TravelAgency"
+        offer_id:
+          description: unique offer id
+          type: string
+          x-go-name: ID
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        source:
+          $ref: "#/components/schemas/Source"
+        offer_items:
+          description: offer items in the offer
+          x-go-name: OfferItems
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RequestOfferItem"
+
+
+    # Services Response
+    ServicesResponse:
+      description: Available seat map for each segment
+      type: object
+      additionalProperties: false
+      title: SeatResponse
+      x-go-name: SeatResponse
+      properties:
+        source:
+          description: Source API information.
+          type: object
+          x-go-name: Source
+          properties:
+            response_id:
+              type: string
+              description: NDC response id
+              x-go-name: ResponseID
+            airline:
+              type: string
+              description: Airline IATA code
+              x-go-name: Airline 
+        passengers:
+          x-go-name: Passengers
+          description: PassengerType object list included in the offer
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PassengerType"
+        segments:
+          x-go-name: Segments
+          description: Available segment for seat selection
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/Segment"
+        service_offers:
+          x-go-name: ServiceOffers
+          description: service offer of segments
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/ServiceOffer"
+
+    ServiceOffer:
+      description: Service offer
+      type: object
+      additionalProperties: false
+      title: ServiceOffer
+      x-go-name: ServiceOffer
+      properties:
+        id:
+          description: Unique Service Offer ID
+          type: string
+          x-go-name: ID
+        items:
+          x-go-name: Items
+          description: Service offer items
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/ServiceOfferItem"
+
+    ServiceOfferItem:
+      description: Service offer item
+      type: object
+      additionalProperties: false
+      title: ServiceOfferItem
+      x-go-name: ServiceOfferItem
+      properties:
+        id:
+          description: unique service offer id
+          type: string
+          x-go-name: ID
+        passenger_ids:
+          x-go-name: PassengerIds
+          type: array
+          description: passenger ids of this offer Item
+          minItems: 1
+          items:
+            type: string
+        segment_ids:
+          x-go-name: SegmentIds
+          type: array
+          description: segment ids of this offer Item
+          minItems: 1
+          items:
+            type: string
+        price:
+          x-go-name: Price
+          description: Total price of this order
+          type: number
+        currency:
+          x-go-name: Currency
+          description: Currency used in this order
+          type: string
+        description:
+          description: Description of this service item
+          type: string
+          x-go-name: Description
+    
+
+    # Order Request:
+    OrderRequest:
+      description: Order request contains a list of offers to book
+      type: object
+      additionalProperties: false
+      title: OrderRequest
+      properties:
+        travel_agency:
+          $ref: "#/components/schemas/TravelAgency"
+        offer_id:
+          description: unique offer id
+          type: string
+          x-go-name: ID
+        passengers:
+          x-go-name: Passengers
+          description: Passenger object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Passenger"
+        contacts:
+          x-go-name: Contacts
+          description: Contact object list
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Contact"
+        source:
+          $ref: "#/components/schemas/Source"
+        hash:
+          description: hash from returned offer object
+          type: string
+          x-go-name: Hash
+        offer_items:
+          description: offer items in the offer
+          x-go-name: OfferItems
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RequestOfferItem"
+        seat_offer:
+          $ref: "#/components/schemas/RequestSeatOffer"
+        service_offer:
+          $ref: "#/components/schemas/RequestServiceOffer"
+        payment:
+          $ref: "#/components/schemas/Payment"
+
+    RequestSeatOffer:
+      description: Request Seat offer
+      type: object
+      additionalProperties: false
+      title: RequestSeatOffer
+      x-go-name: RequestSeatOffer
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        items:
+          x-go-name: Items
+          description: Seat offer items
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/RequestSeatOfferItem"
+
+    RequestSeatOfferItem:
+      description: Request Seat offer item
+      type: object
+      additionalProperties: false
+      title: RequestSeatOfferItem
+      x-go-name: RequestSeatOfferItem
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        passenger_id:
+          x-go-name: PassengerId
+          type: string
+          description: passenger ids of this offer Item
+        seat:
+          $ref: "#/components/schemas/Seat"
+
+    RequestServiceOffer:
+      description: Seat offer
+      type: object
+      additionalProperties: false
+      title: SeatOffer
+      x-go-name: SeatOffer
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        items:
+          x-go-name: Items
+          description: Seat offer items
+          type: array
+          minItems: 0
+          items:
+            $ref: "#/components/schemas/RequestSeatOfferItem"
+
+    RequestServiceOfferItem:
+      description: Request service offer item
+      type: object
+      additionalProperties: false
+      title: SeatOfferItem
+      x-go-name: SeatOfferItem
+      properties:
+        id:
+          description: unique seat offer id
+          type: string
+          x-go-name: ID
+        passenger_id:
+          x-go-name: PassengerId
+          type: string
+          description: passenger id of this offer Item
+
+
+    # Order Response
+    OrderResponse:
+      description: Order response contains all information about an order
+      type: object
+      additionalProperties: false
+      title: OrderResponse
+      properties:
+        id:
+          x-go-name: ID
+          description: id of an order
+          type: string
+        passengers:
+          x-go-name: Passengers
+          description: Passenger object list
+          type: array
+          maxItems: 10
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Passenger"
+        contacts:
+          x-go-name: Contacts
+          description: Contact object list
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Contact"
+        source:
+          $ref: "#/components/schemas/Source"
+        payment:
+          $ref: "#/components/schemas/Payment"
+        
+        trips:
+          description: Trips contains in the offer
+          x-go-name: Trips
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Trip"
+        baggages:
+          $ref: "#/components/schemas/PassengerBaggageAllowances"
+        seats:
+          description: list of selected seats for each passenger and segment
+          x-go-name: Seats
+          type: array
+          minItems: 1
+          items:
+            description: Passenger segment seat
+            type: object
+            additionalProperties: false
+            title: Seat
+            properties:
+              passenger_id:
+                x-go-name: PassengerID
+                description: Passenger id
+                type: string
+              segment_id:
+                x-go-name: SegmentID
+                description: Segment id
+                type: string
+              seat:
+                $ref: "#/components/schemas/Seat"
+        ticket_numbers:
+          description: Ticket number for each passenger
+          x-go-name: TicketNumbers
+          type: array
+          minItems: 1
+          items:
+            description: Ticket number for one person
+            type: object
+            additionalProperties: false
+            title: PassengerTicketNumber
+            properties:
+              passenger_id:
+                x-go-name: PassengerID
+                description: Passenger id
+                type: string
+              ticket_number:
+                x-go-name: TicketNumber
+                description: Ticket number
+                type: string
+
